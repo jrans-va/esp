@@ -40,8 +40,6 @@ const int kMetadataFetchRetries = 5;
 const char kFailedMetadataFetch[] = "Failed to fetch metadata";
 // External status message for failure to fetch service account token
 const char kFailedTokenFetch[] = "Failed to fetch service account token";
-// External status message for token fetch in progress
-const char kFetchingToken[] = "Fetching service account token";
 // External status message for token parse failure
 const char kFailedTokenParse[] = "Failed to parse access token response";
 // Time window (in seconds) before expiration to initiate re-fetch
@@ -141,10 +139,9 @@ void GlobalFetchServiceAccountToken(
       // If token is still valid, continue
       if (token->is_access_token_valid(0)) {
         continuation(Status::OK);
-      } else {
-        continuation(Status(Code::UNAVAILABLE, kFetchingToken));
+        return;
       }
-      return;
+      // If token is not valid, fall through to default case and fetch again
     case auth::ServiceAccountToken::FAILED:
       // permanent failure
       continuation(Status(Code::INTERNAL, kFailedTokenFetch));
